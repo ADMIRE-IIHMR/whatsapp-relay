@@ -49,7 +49,7 @@ async def relay_message(req: Request, x_relay_secret: str = Header(None)):
         return JSONResponse({"error": str(e)}, status_code=502)
 
 # ─────────────────────────────────────────────
-# UPLOAD MEDIA (PDF)
+# UPLOAD MEDIA (Dynamic Content-Type)
 # ─────────────────────────────────────────────
 @app.post("/relay/media")
 async def relay_media(req: Request, x_relay_secret: str = Header(None)):
@@ -61,9 +61,13 @@ async def relay_media(req: Request, x_relay_secret: str = Header(None)):
         file = form["file"]
         url  = f"{WA_BASE}/media"
 
+        # Dynamically grab the content type sent by whatsapp_bot.py
+        # (e.g., "image/png" for references, "application/pdf" for reports)
+        content_type = file.content_type or "application/octet-stream"
+
         files = {
-            "file": (file.filename, await file.read(), "application/pdf"),
-            "type": (None, "application/pdf"),
+            "file": (file.filename, await file.read(), content_type),
+            "type": (None, content_type),
             "messaging_product": (None, "whatsapp"),
         }
 
